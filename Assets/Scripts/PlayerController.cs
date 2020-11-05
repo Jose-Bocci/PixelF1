@@ -6,8 +6,13 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
+    public GameObject game;
+    public GameObject enemyGenerator;
+    public AudioClip giroClip;
+    public AudioClip dieClip;
 
     private Animator animator;
+    private AudioSource audioPlayer;
     int posicion = 1;
     public void UpdatePosicion(int posicion)
     {
@@ -17,45 +22,58 @@ public class PlayerController : MonoBehaviour
     void Start()
     {
         animator = GetComponent<Animator>();
-
+        audioPlayer = GetComponent<AudioSource>();
         
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (posicion == 1)
+        bool gamePlaying = game.GetComponent<GameController>().gameState == GameController.GameState.Playing;
+        if (gamePlaying)
         {
-            if (Input.GetKeyDown("up"))
+            if (posicion == 1)
             {
-                UpdateState("CarrilArriba");
-                UpdatePosicion(2);
-            }else if (Input.GetKeyDown("down"))
-            {
-                UpdateState("CarrilAbajo");
-                UpdatePosicion(0);
+                if (Input.GetKeyDown("up"))
+                {
+                    UpdateState("CarrilArriba");
+                    UpdatePosicion(2);
+                    audioPlayer.clip = giroClip;
+                    audioPlayer.Play();
+                }
+                else if (Input.GetKeyDown("down"))
+                {
+                    UpdateState("CarrilAbajo");
+                    UpdatePosicion(0);
+                    audioPlayer.clip = giroClip;
+                    audioPlayer.Play();
+                }
             }
-        }
-        if (posicion == 2)
-        {
-            if (Input.GetKeyDown("up"))
+            if (posicion == 2)
             {
+                if (Input.GetKeyDown("up"))
+                {
+                }
+                else if (Input.GetKeyDown("down"))
+                {
+                    UpdateState("CarrilMedioArriba");
+                    UpdatePosicion(1);
+                    audioPlayer.clip = giroClip;
+                    audioPlayer.Play();
+                }
             }
-            else if (Input.GetKeyDown("down"))
+            if (posicion == 0)
             {
-                UpdateState("CarrilMedioArriba");
-                UpdatePosicion(1);
-            }
-        }
-        if (posicion == 0)
-        {
-            if (Input.GetKeyDown("up"))
-            {
-                UpdateState("CarrilMedioAbajo");
-                UpdatePosicion(1);
-            }
-            else if (Input.GetKeyDown("down"))
-            {
+                if (Input.GetKeyDown("up"))
+                {
+                    UpdateState("CarrilMedioAbajo");
+                    UpdatePosicion(1);
+                    audioPlayer.clip = giroClip;
+                    audioPlayer.Play();
+                }
+                else if (Input.GetKeyDown("down"))
+                {
+                }
             }
         }
     }
@@ -70,4 +88,27 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.gameObject.tag == "Enemy")
+        {
+            UpdateState("PlayerDie");
+            game.GetComponent<GameController>().gameState = GameController.GameState.Ended;
+            enemyGenerator.SendMessage("CancelGenerator", true);
+            game.SendMessage("ResetTimeScale", 0.5f);
+
+            game.GetComponent<AudioSource>().Stop();
+            audioPlayer.clip = dieClip;
+            audioPlayer.Play();
+        }
+        else if (other.gameObject.tag == "Point")
+        {
+            game.SendMessage("IncreasePoints");
+        }
+    }
+
+    void GameReady()
+    {
+        game.GetComponent<GameController>().gameState = GameController.GameState.Ready;
+    }
 }
