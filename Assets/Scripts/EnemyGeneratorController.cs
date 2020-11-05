@@ -28,7 +28,7 @@ public class EnemyGeneratorController : MonoBehaviour
 
     void CreateEnemy()
     {
-        posicion = UnityEngine.Random.Range(0, 2);
+        posicion = UnityEngine.Random.Range(0, 3);
         if (posicion == 0)
         {
             tempPos = transform.position;
